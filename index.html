@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Vladislav Larionov — implied volatility surfaces for BTC and ETH options, MS in Financial Mathematics at Sirius University.">
+<title>Vladislav Larionov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky left rail (name, nav, contacts, language) + one reading column; rail collapses to a header on phones */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#141C2B; --muted:#5A6476; --line:#D8DEE7;
+  --accent:#1E4FC2; --accent-soft:#E6EDFB;
+  --prog:#9A5B00; --prog-bg:#FBF0DD; --done:#1D6B45; --done-bg:#E2F2E9;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141C; --surface:#161D28; --ink:#E7ECF3; --muted:#9AA5B6; --line:#2A3443;
+  --accent:#7FA3F5; --accent-soft:#1C2A45;
+  --prog:#F0B962; --prog-bg:#3A2B12; --done:#7FD3A6; --done-bg:#15332A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141C; --surface:#161D28; --ink:#E7ECF3; --muted:#9AA5B6; --line:#2A3443;
+  --accent:#7FA3F5; --accent-soft:#1C2A45;
+  --prog:#F0B962; --prog-bg:#3A2B12; --done:#7FD3A6; --done-bg:#15332A; color-scheme:dark}
+
+:root .ru{display:none}
+:root[data-lang="ru"] .ru{display:revert}
+:root[data-lang="ru"] .en{display:none}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;padding-inline:20px}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li+li{margin-top:.35em}
+
+.shell{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:56px;padding-block:40px 64px}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 32px);align-self:start;display:flex;flex-direction:column;gap:28px}
+.rail .who{font-family:var(--f-display);font-size:1.25rem;font-weight:600;color:var(--ink);text-decoration:none}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{color:var(--muted);text-decoration:none;padding:5px 0;font-size:.95rem}
+.nav a:hover{color:var(--ink)}
+.label{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.contact{display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.phone{font-family:var(--f-mono);font-size:.9rem;user-select:all}
+.textbtn{all:unset;cursor:pointer;color:var(--accent);font-size:.85rem}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;align-self:start}
+.lang button{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:.78rem;padding:4px 12px;border-radius:999px;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* main */
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+section{scroll-margin-top:24px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:40px;align-items:center}
+.eyebrow{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.04em}
+.hero h1{font-size:clamp(2.4rem,5vw,3.4rem);margin:12px 0 16px}
+.lede{font-size:1.1rem;color:var(--muted);max-width:34em}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:8px;font:500 .95rem var(--f-body);padding:10px 18px;border-radius:8px;text-decoration:none;cursor:pointer;border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn[disabled]{opacity:.6;cursor:default}
+.note{font-size:.85rem;color:var(--muted);margin-top:10px;min-height:1.3em}
+
+.photo{display:block;width:100%;max-width:260px;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 10px}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);margin-top:6px}
+.fig .grid{stroke:var(--line);stroke-width:1}
+.fig .curve{stroke:var(--accent);stroke-width:2.4;fill:none}
+.fig .atm{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4}
+.fig text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+
+.sec-head{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
+.sec-head h2{font-size:1.75rem}
+
+.thesis{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px}
+.thesis h3{font-size:1.4rem;margin:8px 0 6px}
+.meta{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.thesis ul{margin-top:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.chip{font-family:var(--f-mono);font-size:.76rem;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+
+.themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 36px}
+.themes h3{font-size:1.1rem;margin-bottom:6px}
+.themes p{color:var(--muted);font-size:.95rem}
+
+.list{display:flex;flex-direction:column}
+.item{display:flex;flex-direction:column;gap:8px;padding-block:22px;border-top:1px solid var(--line)}
+.item:last-child{border-bottom:1px solid var(--line)}
+.item-top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.item h3{font-size:1.15rem}
+.item p,.item li{color:var(--ink);font-size:.97rem}
+.badge{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.badge.prog{background:var(--prog-bg);color:var(--prog)}
+.badge.done{background:var(--done-bg);color:var(--done)}
+.links{display:flex;flex-wrap:wrap;gap:14px;font-size:.92rem}
+
+.pub{border-left:3px solid var(--accent);padding-left:20px}
+.pub .authors{color:var(--muted);font-size:.95rem}
+.pub .authors b{color:var(--ink);font-weight:600}
+.pub h3{font-size:1.2rem;margin:8px 0}
+
+.cv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 40px}
+.cv h3{font-size:1.05rem;margin-bottom:10px;font-family:var(--f-body)}
+.cv li{font-size:.95rem}
+.cv .yr{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+
+footer{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:20px}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:24px 48px}
+  .rail{position:static;gap:18px;border-bottom:1px solid var(--line);padding-bottom:20px}
+  .rail-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+  .nav{flex-direction:row;flex-wrap:wrap;gap:4px 16px}
+  .hero{grid-template-columns:minmax(0,1fr);gap:28px}
+  .photo{max-width:220px;order:-1}
+  main{gap:56px}
+}
+@media (max-width:600px){
+  .themes,.cv{grid-template-columns:minmax(0,1fr)}
+  .thesis{padding:20px}
+}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-row">
+      <a class="who" href="#home"><span class="en">Vladislav Larionov</span><span class="ru">Владислав Ларионов</span></a>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="lang-en" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" id="lang-ru" data-lang="ru" aria-pressed="false">RU</button>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#research"><span class="en">Research</span><span class="ru">Исследование</span></a>
+      <a href="#themes"><span class="en">Research themes</span><span class="ru">Направления</span></a>
+      <a href="#projects"><span class="en">Projects</span><span class="ru">Проекты</span></a>
+      <a href="#experience"><span class="en">Experience</span><span class="ru">Опыт</span></a>
+      <a href="#publication"><span class="en">Publication</span><span class="ru">Публикация</span></a>
+      <a href="#cv"><span class="en">CV</span><span class="ru">Резюме</span></a>
+    </nav>
+  </aside>
+
+  <main id="main">
+    <section class="hero" id="home">
+      <div>
+        <div class="eyebrow">Volatility modeling · Crypto options · Market data</div>
+        <h1><span class="en">Vladislav Larionov</span><span class="ru">Владислав Ларионов</span></h1>
+        <p class="lede">
+          <span class="en">Second-year MS student in Financial Mathematics and Financial Technologies at Sirius University. I work on implied volatility surfaces for Bitcoin and Ethereum options.</span>
+          <span class="ru">Магистрант второго года программы «Финансовая математика и финансовые технологии» Университета «Сириус». Занимаюсь поверхностями подразумеваемой волатильности опционов на Bitcoin и Ethereum.</span>
+        </p>
+        <div class="actions">
+          <a class="btn primary" id="dl-cv" href="assets/vladislav-larionov-cv.pdf" download><span class="en">Download CV (PDF)</span><span class="ru">Скачать резюме (PDF)</span></a>
+          <a class="btn ghost" href="#projects"><span class="en">View projects</span><span class="ru">К проектам</span></a>
+        </div>
+      </div>
+      <img class="photo" src="assets/vladislav-larionov-photo.jpg" width="560" height="700" alt="Vladislav Larionov">
+
+    </section>
+
+    <section id="research">
+      <div class="sec-head">
+        <div class="eyebrow"><span class="en">Master's research in progress</span><span class="ru">Магистерское исследование, в работе</span></div>
+      </div>
+      <div class="thesis">
+        <h3><span class="en">Implied volatility surfaces for BTC and ETH options</span><span class="ru">Поверхности подразумеваемой волатильности опционов на BTC и ETH</span></h3>
+        <p class="meta"><span class="en">Supervisor R.V. Grinis (MIPT) · 2025 – present</span><span class="ru">Научный руководитель Р.В. Гринис (МФТИ) · 2025 – н.в.</span></p>
+        <ul class="en">
+          <li>Built a Python pipeline for Deribit options tick data (Nov 2024 – Apr 2025): nanosecond timestamps, OTM filtering, log-moneyness axes. Rewrote the hot loops in Numba (@njit).</li>
+          <li>Calibrated SABR (with a separate ATM branch) and SVI to daily smiles and checked the surfaces for arbitrage.</li>
+          <li>Built time series of model parameters and studied the distributions of their log-returns: Jarque–Bera and Shapiro–Wilk tests reject normality.</li>
+        </ul>
+        <ul class="ru">
+          <li>Собрал на Python пайплайн обработки тиковых данных опционов Deribit (ноябрь 2024 – апрель 2025): наносекундные метки времени, фильтрация OTM, оси в лог-манинессе. Узкие места переписал на Numba (@njit).</li>
+          <li>Калибровал SABR (с отдельной ATM-веткой) и SVI на дневные улыбки, проверял поверхности на арбитраж.</li>
+          <li>Построил временные ряды параметров моделей и изучил распределения их лог-доходностей: тесты Жарка–Бера и Шапиро–Уилка отвергают нормальность.</li>
+        </ul>
+        <div class="chips"><span class="chip">pandas</span><span class="chip">NumPy</span><span class="chip">Numba</span><span class="chip">SciPy</span><span class="chip">Matplotlib</span><span class="chip">Parquet</span></div>
+      </div>
+    </section>
+
+    <section id="themes">
+      <div class="sec-head"><h2><span class="en">Research themes</span><span class="ru">Направления</span></h2></div>
+      <div class="themes">
+        <div>
+          <h3><span class="en">Volatility modeling</span><span class="ru">Моделирование волатильности</span></h3>
+          <p><span class="en">SABR and SVI calibration to option smiles, arbitrage checks on the resulting surfaces.</span><span class="ru">Калибровка SABR и SVI на улыбки опционов, проверка получаемых поверхностей на арбитраж.</span></p>
+        </div>
+        <div>
+          <h3><span class="en">High-frequency market data</span><span class="ru">Высокочастотные рыночные данные</span></h3>
+          <p><span class="en">Processing large volumes of exchange tick data in Python, with Numba for the heavy loops and Parquet for storage.</span><span class="ru">Обработка больших объёмов биржевых тиковых данных на Python: Numba для тяжёлых циклов, Parquet для хранения.</span></p>
+        </div>
+        <div>
+          <h3><span class="en">Dynamics of model parameters</span><span class="ru">Динамика параметров моделей</span></h3>
+          <p><span class="en">Time series of calibrated parameters, distributions of their log-returns, hypothesis testing.</span><span class="ru">Временные ряды откалиброванных параметров, распределения их лог-доходностей, проверка гипотез.</span></p>
+        </div>
+        <div>
+          <h3><span class="en">Machine learning for pricing</span><span class="ru">Машинное обучение для ценообразования</span></h3>
+          <p><span class="en">Differential machine learning: training on pathwise derivatives to learn prices and Greeks together.</span><span class="ru">Дифференциальное машинное обучение: обучение на потраекторных производных, чтобы одновременно восстанавливать цены и греки.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="sec-head"><h2><span class="en">Selected projects</span><span class="ru">Проекты</span></h2></div>
+      <div class="list">
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">Implied volatility surfaces for BTC and ETH options</span><span class="ru">Поверхности подразумеваемой волатильности для опционов на BTC и ETH</span></h3>
+            <span class="badge prog"><span class="en">in progress</span><span class="ru">в работе</span></span>
+          </div>
+          <p class="meta"><span class="en">MS research · 2025 – present</span><span class="ru">Магистерское исследование · 2025 – н.в.</span></p>
+          <p><span class="en">Deribit tick-data pipeline, SABR and SVI calibration to daily smiles, arbitrage checks, and statistical study of how the model parameters move over time.</span><span class="ru">Пайплайн тиковых данных Deribit, калибровка SABR и SVI на дневные улыбки, проверка на арбитраж и статистический анализ динамики параметров моделей.</span></p>
+        </article>
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">Reproduction of “Differential Machine Learning” (Huge &amp; Savine, 2020)</span><span class="ru">Воспроизведение статьи «Differential Machine Learning» (Huge &amp; Savine, 2020)</span></h3>
+            <span class="badge prog"><span class="en">in progress</span><span class="ru">в работе</span></span>
+          </div>
+          <p class="meta"><span class="en">Team project · Yandex SHAD course · Oct 2026</span><span class="ru">Командный проект · курс ШАД Яндекса · октябрь 2026</span></p>
+          <ul class="en">
+            <li>Goal: reproduce the paper on its public examples, a 7-asset basket under the Bachelier model and a 4-asset worst-of autocallable under local volatility.</li>
+            <li>Networks are trained on differential labels (pathwise derivatives via AAD) with a loss that combines price error and a λ-weighted error in the Greeks.</li>
+            <li>Implemented differential regression as a Python package (NumPy, SciPy, scikit-learn) with Jupyter notebooks. Twin network (PyTorch) and differential PCA in progress.</li>
+          </ul>
+          <ul class="ru">
+            <li>Цель: воспроизвести статью на её открытых примерах — корзине из 7 активов в модели Башелье и worst-of автоколле на 4 актива в модели локальной волатильности.</li>
+            <li>Сети обучаются на дифференциальных метках (потраекторные производные через AAD) с функцией потерь, объединяющей ошибку в цене и взвешенную с коэффициентом λ ошибку в греках.</li>
+            <li>Реализовал дифференциальную регрессию как Python-пакет (NumPy, SciPy, scikit-learn) с Jupyter-ноутбуками. Twin network (PyTorch) и дифференциальный PCA в работе.</li>
+          </ul>
+          <div class="links"><a href="https://github.com/bibky/Yandex_Sota_Sirius" target="_blank" rel="noopener">GitHub</a></div>
+        </article>
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">Topic modeling and multi-label text clustering</span><span class="ru">Тематическое моделирование и многометочная кластеризация текстов</span></h3>
+            <span class="badge done"><span class="en">done</span><span class="ru">завершён</span></span>
+          </div>
+          <p class="meta"><span class="en">Team project · GazpromBankTech course · Dec 2025</span><span class="ru">Командный проект · курс GazpromBankTech · декабрь 2025</span></p>
+          <p><span class="en">Scraped user reviews from Banki.ru with Python (BeautifulSoup) and used an LLM to extract the topics of each review and the sentiment toward each topic.</span><span class="ru">Собрал пользовательские отзывы с Banki.ru на Python (BeautifulSoup) и с помощью LLM выделял темы каждого отзыва и тональность по каждой теме.</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="experience">
+      <div class="sec-head"><h2><span class="en">Work experience</span><span class="ru">Опыт работы</span></h2></div>
+      <div class="list">
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">Sibur PolyLab — Chief Specialist</span><span class="ru">Сибур ПолиЛаб — главный специалист</span></h3>
+            <span class="meta"><span class="en">Jan 2025 – Aug 2025</span><span class="ru">янв. 2025 – авг. 2025</span></span>
+          </div>
+          <ul class="en">
+            <li>Collected, cleaned and analyzed IR-spectra data for training and validating ML models together with the SBER AIRI team.</li>
+            <li>Tested and configured the LIMS, gathered requirements for new features, wrote and rolled out SOPs.</li>
+          </ul>
+          <ul class="ru">
+            <li>Собирал, очищал и анализировал данные ИК-спектров для обучения и валидации ML-моделей совместно с командой SBER AIRI.</li>
+            <li>Тестировал и настраивал LIMS, собирал требования к новым функциям, писал и внедрял СОПы.</li>
+          </ul>
+        </article>
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">Sirius University — Junior Researcher, Biomaterials</span><span class="ru">Университет «Сириус» — младший научный сотрудник, биоматериалы</span></h3>
+            <span class="meta"><span class="en">Oct 2023 – Apr 2025</span><span class="ru">окт. 2023 – апр. 2025</span></span>
+          </div>
+        </article>
+        <article class="item">
+          <div class="item-top">
+            <h3><span class="en">A.N. Belozersky Institute of Physico-Chemical Biology, MSU — Protein Chemistry Department</span><span class="ru">НИИ физико-химической биологии им. А.Н. Белозерского МГУ — отдел химии белка</span></h3>
+            <span class="meta"><span class="en">Feb 2021 – Jun 2023</span><span class="ru">февр. 2021 – июнь 2023</span></span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="publication">
+      <div class="sec-head"><h2><span class="en">Publication</span><span class="ru">Публикация</span></h2></div>
+      <div class="pub">
+        <p class="authors">Gevorgyan K.P., <b>Larionov V.I.</b>, Akopyan A.V., Anisimov A.V., Domashkina P.D.</p>
+        <h3>Room Temperature Ultrafast Oxidative Desulfurization with Sodium Hypochlorite in the Presence of Silica-Supported Catalysts</h3>
+        <p class="meta">ACS Omega, 2024, 9, 13831–13839 · Q1, IF 4.1</p>
+        <div class="links" style="margin-top:10px"><a href="https://doi.org/10.1021/acsomega.3c08534" target="_blank" rel="noopener">DOI</a></div>
+      </div>
+    </section>
+
+    <section id="cv">
+      <div class="sec-head"><h2><span class="en">CV highlights</span><span class="ru">Кратко из резюме</span></h2></div>
+      <div class="cv">
+        <div>
+          <h3><span class="en">Education</span><span class="ru">Образование</span></h3>
+          <ul class="en">
+            <li>Sirius University — MS, Financial Mathematics and Financial Technologies. <span class="yr">2025 – present</span><br>Topics: stochastic calculus, algorithmic trading and market making.</li>
+            <li>Lomonosov Moscow State University — Faculty of Chemistry. <span class="yr">2017 – 2023</span></li>
+          </ul>
+          <ul class="ru">
+            <li>Университет «Сириус» — магистратура «Финансовая математика и финансовые технологии». <span class="yr">2025 – н.в.</span><br>Темы: стохастическое исчисление, алгоритмическая торговля и маркет-мейкинг.</li>
+            <li>МГУ им. М.В. Ломоносова — химический факультет. <span class="yr">2017 – 2023</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3><span class="en">Schools and events</span><span class="ru">Школы и мероприятия</span></h3>
+          <ul class="en">
+            <li>7th International Summer School of Financial Mathematics, Kaluga. <span class="yr">Aug 2026</span></li>
+            <li>Hackathon 4.0, Sirius — 3rd place. <span class="yr">May 2026</span></li>
+            <li>MOEX &amp; FX Forum. <span class="yr">May 2026</span></li>
+            <li>BRICS Congress on Ecology and Climate Change. <span class="yr">2024</span></li>
+            <li>III–V Congresses of Young Scientists. <span class="yr">2023 – 2025</span></li>
+          </ul>
+          <ul class="ru">
+            <li>VII Международная летняя школа по финансовой математике, Калуга. <span class="yr">авг. 2026</span></li>
+            <li>Хакатон 4.0, «Сириус» — 3-е место. <span class="yr">май 2026</span></li>
+            <li>MOEX &amp; FX Forum. <span class="yr">май 2026</span></li>
+            <li>Конгресс БРИКС по экологии и изменению климата. <span class="yr">2024</span></li>
+            <li>III–V Конгрессы молодых учёных. <span class="yr">2023 – 2025</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3><span class="en">Awards</span><span class="ru">Награды</span></h3>
+          <ul class="en">
+            <li>All-Russian Chemistry Olympiad for schoolchildren — two-time prize-winner. <span class="yr">2016, 2017</span></li>
+            <li>Grant of the President of the Russian Federation. <span class="yr">2017 – 2023</span></li>
+          </ul>
+          <ul class="ru">
+            <li>Всероссийская олимпиада школьников по химии — дважды призёр. <span class="yr">2016, 2017</span></li>
+            <li>Стипендия Президента Российской Федерации. <span class="yr">2017 – 2023</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3><span class="en">Skills</span><span class="ru">Навыки</span></h3>
+          <ul class="en">
+            <li>Programming: Python (NumPy, pandas, SciPy, Numba, scikit-learn, Matplotlib), Jupyter, Parquet, LaTeX.</li>
+            <li>Quant: option pricing and volatility models (SABR, SVI), stochastic calculus, hypothesis testing, numerical optimization.</li>
+            <li>Languages: Russian (native), English (B2).</li>
+            <li>Interests: ultimate frisbee, cycling, diving (PADI OWD).</li>
+          </ul>
+          <ul class="ru">
+            <li>Программирование: Python (NumPy, pandas, SciPy, Numba, scikit-learn, Matplotlib), Jupyter, Parquet, LaTeX.</li>
+            <li>Квант: ценообразование опционов и модели волатильности (SABR, SVI), стохастическое исчисление, проверка гипотез, численная оптимизация.</li>
+            <li>Языки: русский (родной), английский (B2).</li>
+            <li>Увлечения: алтимат фрисби, велосипед, дайвинг (PADI OWD).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer><span class="en">Vladislav Larionov · 2026</span><span class="ru">Владислав Ларионов · 2026</span></footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  function setLang(l){
+    root.setAttribute('data-lang',l);
+    root.lang=l;
+    document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.lang===l))});
+    try{localStorage.setItem('cv-lang',l)}catch(e){}
+  }
+  var saved=null; try{saved=localStorage.getItem('cv-lang')}catch(e){}
+  setLang(saved==='ru'?'ru':'en');
+  document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang)})});
+
+  var t=function(en,ru){return root.getAttribute('data-lang')==='ru'?ru:en};
+
+})();
+</script>
+</body>
+</html>
